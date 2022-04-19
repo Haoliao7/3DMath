@@ -8,8 +8,13 @@ public class PlayerMovement : MonoBehaviour
     public float yAmplitude;
 
     public float frequency;
+    float rotateSpeed;
 
     public GameObject range;
+
+    public bool lose;
+
+    public GameObject gameOverStuff;
     // Start is called before the first frame update
     void Start()
     {
@@ -21,35 +26,46 @@ public class PlayerMovement : MonoBehaviour
     {
         Vector3 mousePos = Input.mousePosition; // the position of mouse
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(mousePos);//change your mouse position from screen point to world point
-        //Debug.Log(mouseWorldPos);
+        
+        xAmplitude = map(mouseWorldPos.x, -9, 9, 0f, 8f);//map the range of mousePosX to the range between 0 and 8
+        yAmplitude = map(mouseWorldPos.y, -4.8f, 4.8f, 0f, 4f);//map the range of mousePosY to the range between 0 and 4
 
-        xAmplitude = map(mouseWorldPos.x, -9, 9, 0f, 8f);
-        yAmplitude = map(mouseWorldPos.y, -4.8f, 4.8f, 0f, 4f);
+        rotateSpeed += frequency * Time.deltaTime; //rotate speed
 
-
-        float x = Mathf.Cos(Time.time * frequency) * xAmplitude;
-        float y = Mathf.Sin(Time.time * frequency) * yAmplitude;
+        float x = Mathf.Cos(rotateSpeed) * xAmplitude; // use sin and cos to make the object rotate
+        float y = Mathf.Sin(rotateSpeed) * yAmplitude;
         float z = transform.position.z;
 
-       // float scaling = map(Mathf.Sin(Time.time),-1,1,0.5f,1);
 
         transform.position = new Vector3(x, y, z);
-        // transform.localScale = new Vector3(scaling, scaling, scaling);
 
 
-        range.transform.localScale = new Vector3(xAmplitude*2f, yAmplitude*2f, range.transform.localScale.z);
+        range.transform.localScale = new Vector3(xAmplitude*2f, yAmplitude*2f, range.transform.localScale.z); // make this image as big as the orbit
 
-        
+        if (Input.GetMouseButton(0))
+        {
+            frequency = 3;//if pressing left button, speed up 
+        }
+        else 
+        {
+            frequency = 1; //if releasing, slow down
+        }
 
     }
 
-    private void OnCollisionEnter(Collision collision)
+    
+
+    private void OnTriggerEnter(Collider other)
     {
-        Debug.Log(collision.gameObject.name);
+        if(other.gameObject.tag == "Enemy") // if collide with the enemy
+        {
+            lose = true; // lose
+            gameOverStuff.SetActive(true); // activate the game over text
+        }
     }
 
 
-    float map(float value, float leftMin, float leftMax, float rightMin, float rightMax)
+    float map(float value, float leftMin, float leftMax, float rightMin, float rightMax) //mapping function
     {
         return rightMin + (value - leftMin) * (rightMax - rightMin) / (leftMax - leftMin);
     }
